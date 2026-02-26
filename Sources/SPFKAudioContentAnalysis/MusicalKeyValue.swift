@@ -1,3 +1,4 @@
+import SPFKAudioContentAnalysisC
 import Foundation
 
 public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConvertible {
@@ -21,4 +22,11 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
         self.name = name
         self.modality = modality
     }
+
+    public init?(cObject: MusicalKey) {
+        guard let value = MusicalKeyValue(rawValue: cObject.index) else { return nil }
+        
+        self = value
+    }
+    
 }

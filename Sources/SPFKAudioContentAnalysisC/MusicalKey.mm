@@ -32,23 +32,21 @@ using std::endl;
 
 MusicalKeyValue parse(const float *samples, double numberOfSamples,
                       float sampleRate) {
-    int iBlockLength = 4096;
-    int iHopLength = 2048;
+    int blockLength = 4096;
+    int hopLength = 2048;
     int keyIndex = -1;
 
-    clock_t time = 0;
-    CKey *cKey = 0;
-    cKey = new CKey();
+    CKey *cKey = new CKey();
 
     if (!cKey)
         return; // error
 
     cKey->init(samples, numberOfSamples, sampleRate);
 
-    time = clock();
+    clock_t time = clock();
 
-    // compute key
-    cout << "\n1. computing key..." << endl;
+    cout << "Computing key..." << endl;
+
     keyIndex = cKey->compKey();
 
     std::string stringValue =

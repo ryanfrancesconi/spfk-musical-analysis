@@ -18,7 +18,8 @@ struct ACATests: TestCaseModel {
             sampleRate: Float(buffer.format.sampleRate)
         )
 
-        Log.debug(key.index, key.stringValue)
-        Log.debug(MusicalKeyValue(rawValue: key.index))
+        let value = MusicalKeyValue(cObject: key)
+
+        Log.debug(value)
     }
 }
