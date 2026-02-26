@@ -1,2 +1,3 @@
-# spfk-audio-content-analysis
-Swift Wrapper for CXXAudioContentAnalysis
+# SPFK
+
+A package with a C based target.
