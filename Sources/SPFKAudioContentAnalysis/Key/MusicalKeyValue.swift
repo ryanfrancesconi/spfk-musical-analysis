@@ -1,5 +1,8 @@
-import SPFKAudioContentAnalysisC
+// Copyright Ryan Francesconi. All Rights Reserved. Revision History at
+// https://github.com/ryanfrancesconi/spfk-audio-content-analysis
+
 import Foundation
+import SPFKAudioContentAnalysisC
 
 public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConvertible {
     public var name: MusicalKeyName
@@ -25,8 +28,7 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
 
     public init?(cObject: MusicalKey) {
         guard let value = MusicalKeyValue(rawValue: cObject.index) else { return nil }
-        
+
         self = value
     }
-    
 }

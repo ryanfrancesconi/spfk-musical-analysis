@@ -1,13 +1,11 @@
+// Copyright Ryan Francesconi. All Rights Reserved. Revision History at
+// https://github.com/ryanfrancesconi/spfk-audio-content-analysis
 
 #include <ctime>
 #include <fstream>
 #include <iostream>
 
-// #include "AcaAll.h"
-
-// #include "AudioFileIf.h"
 #include "Key.h"
-
 #import "MusicalKey.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -54,7 +52,6 @@ MusicalKeyValue parse(const float *samples, double numberOfSamples,
 
     cout << "Key computation done in: \t"
          << (clock() - time) * 1.F / CLOCKS_PER_SEC << " seconds." << endl;
-
     cout << "Result: " << stringValue << endl;
 
     NSString *nsString = [NSString stringWithUTF8String:stringValue.c_str()];
