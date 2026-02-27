@@ -6,14 +6,14 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef struct {
-    int32_t identifier;
+    int32_t keyIndex;
     NSString *stringValue;
 } MusicalKeyValue;
 
 @interface MusicalKey : NSObject
 
 @property(nonatomic, nonnull) NSString *stringValue;
-@property(nonatomic) int index;
+@property(nonatomic) int keyIndex;
 
 - (instancetype)initWithData:(const float *)samples
              numberOfSamples:(int)numberOfSamples

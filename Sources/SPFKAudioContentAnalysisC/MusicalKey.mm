@@ -23,7 +23,7 @@ using std::endl;
     MusicalKeyValue value = parse(samples, numberOfSamples, sampleRate);
 
     _stringValue = value.stringValue;
-    _index = value.identifier;
+    _keyIndex = value.keyIndex;
 
     return self;
 }
@@ -36,23 +36,16 @@ MusicalKeyValue parse(const float *samples, double numberOfSamples,
 
     CKey *cKey = new CKey();
 
-    if (!cKey)
-        return; // error
-
     cKey->init(samples, numberOfSamples, sampleRate);
-
-    clock_t time = clock();
-
-    cout << "Computing key..." << endl;
 
     keyIndex = cKey->compKey();
 
+    if (keyIndex == -1) {
+        return MusicalKeyValue{keyIndex, @""};
+    }
+
     std::string stringValue =
         cKey->getKeyString(static_cast<CKey::Keys_t>(keyIndex));
-
-    cout << "Key computation done in: \t"
-         << (clock() - time) * 1.F / CLOCKS_PER_SEC << " seconds." << endl;
-    cout << "Result: " << stringValue << endl;
 
     NSString *nsString = [NSString stringWithUTF8String:stringValue.c_str()];
 
