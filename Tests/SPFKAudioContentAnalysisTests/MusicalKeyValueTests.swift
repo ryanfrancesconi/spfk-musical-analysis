@@ -9,7 +9,7 @@ struct MusicalKeyValueTests {
         var strings = [String]()
 
         for i in 0 ... 24 {
-            guard let value = MusicalKeyValue(rawValue: Int32(i)) else {
+            guard let value = MusicalKeyValue(keyIndex: Int32(i)) else {
                 Log.error(i, "is nil")
                 #expect(i == 24)
                 continue

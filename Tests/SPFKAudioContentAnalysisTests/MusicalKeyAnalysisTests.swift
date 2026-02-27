@@ -25,7 +25,7 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
 
     @Test func musicalKeyAnalysis_cMajor() async throws {
         let url = URL(fileURLWithPath: "/Users/rf/Documents/Dev/Spongefork/TestResources/C Major.mp3")
-        let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 3)
+        let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 10)
         let key = try await mka.process()
         #expect(key == .init(name: .c, tonality: .major))
     }
@@ -40,7 +40,7 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
                 continue
             }
 
-            let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 3)
+            let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 10)
             let key = try await mka.process()
 
             #expect(key == value)
@@ -51,6 +51,7 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
         let list: CountableResult<MusicalKeyValue> = [
             .init(name: .a, tonality: .major),
             .init(name: .a, tonality: .major),
+            .init(name: .a, tonality: .minor),
             .init(name: .a, tonality: .minor),
             .init(name: .b, tonality: .major),
         ]

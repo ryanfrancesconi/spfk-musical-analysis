@@ -24,15 +24,15 @@ public actor MusicalKeyAnalysis {
     }
 
     public func process() async throws -> MusicalKeyValue {
-        processTask = Task<Void, Error> {}
+        processTask = Task<Void, Error> {
+            let audioAnalysis = AudioFileScanner(
+                bufferDuration: audioFile.duration / 50,
+                sendPeriodicProgressEvery: 4,
+                eventHandler: analyze(_:)
+            )
 
-        let audioAnalysis = AudioFileScanner(
-            bufferDuration: audioFile.duration,
-            sendPeriodicProgressEvery: 4,
-            eventHandler: analyze(_:)
-        )
-
-        try await audioAnalysis.process(audioFile: audioFile)
+            try await audioAnalysis.process(audioFile: audioFile)
+        }
 
         _ = await processTask?.result
 
@@ -59,7 +59,10 @@ public actor MusicalKeyAnalysis {
             )
 
             if let value = MusicalKeyValue(cObject: key) {
+                Log.debug(value.description)
+
                 if results.append(value) {
+                    Log.debug(value, "matchesRequired", results.matchesRequired)
                     processTask?.cancel()
                 }
             }
