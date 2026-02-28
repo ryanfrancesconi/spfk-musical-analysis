@@ -58,7 +58,7 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
      ---
      24: No Chord
 
-     MusicalKeyValue is reorganizing this information into a node name and a tonality.
+     MusicalKeyValue is reorganizing this information into a note name and a tonality.
       */
     public init?(keyIndex: Int32) {
         guard keyIndex >= 0, keyIndex <= 23 else {
