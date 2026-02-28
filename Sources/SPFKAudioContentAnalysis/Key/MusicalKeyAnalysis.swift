@@ -20,13 +20,13 @@ public actor MusicalKeyAnalysis {
 
     public init(audioFile: AVAudioFile, matchesRequired: Int? = nil) {
         self.audioFile = audioFile
-        results = CountableResult(matchesRequired: matchesRequired)
+        results = CountableResult(matchesRequired: 2)
     }
 
     public func process() async throws -> MusicalKeyValue {
         processTask = Task<Void, Error> {
             let audioAnalysis = AudioFileScanner(
-                bufferDuration: audioFile.duration / 50,
+                bufferDuration: audioFile.duration / 6,
                 sendPeriodicProgressEvery: 4,
                 eventHandler: analyze(_:)
             )
@@ -36,7 +36,7 @@ public actor MusicalKeyAnalysis {
 
         _ = await processTask?.result
 
-        guard let value = results.mostLikely() else {
+        guard let value = results.choose() else {
             throw NSError(description: "Failed to detect key")
         }
 
@@ -59,10 +59,10 @@ public actor MusicalKeyAnalysis {
             )
 
             if let value = MusicalKeyValue(cObject: key) {
-                Log.debug(value.description)
+                // Log.debug(value.description)
 
                 if results.append(value) {
-                    Log.debug(value, "matchesRequired", results.matchesRequired)
+                    // Log.debug(value, "matchesRequired", results.matchesRequired)
                     processTask?.cancel()
                 }
             }

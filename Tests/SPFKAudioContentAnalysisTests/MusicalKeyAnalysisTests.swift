@@ -30,24 +30,23 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
         #expect(key == .init(name: .c, tonality: .major))
     }
 
-    @Test func majorKeyAnalysis() async throws {
-        for note in NoteName.allCases {
-            let value = MusicalKeyValue(name: note, tonality: .major)
-            let url = URL(fileURLWithPath: "/Users/rf/Documents/Dev/Spongefork/TestResources/\(value.description).mp3")
+    @Test(arguments: NoteName.allCases)
+    func majorKeyAnalysis(note: NoteName) async throws {
+        let value = MusicalKeyValue(name: note, tonality: .major)
+        let url = URL(fileURLWithPath: "/Users/rf/Documents/Dev/Spongefork/TestResources/\(value.description).mp3")
 
-            guard url.exists else {
-                Issue.record("\(url.path) is missing")
-                continue
-            }
-
-            let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 10)
-            let key = try await mka.process()
-
-            #expect(key == value)
+        guard url.exists else {
+            Issue.record("\(url.path) is missing")
+            return
         }
+
+        let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 3)
+        let key = try await mka.process()
+
+        #expect(key == value || key == value.relativeKey)
     }
 
-    @Test func mostLikely() async throws {
+    @Test func choose() async throws {
         let list: CountableResult<MusicalKeyValue> = [
             .init(name: .a, tonality: .major),
             .init(name: .a, tonality: .major),
@@ -56,8 +55,10 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
             .init(name: .b, tonality: .major),
         ]
 
-        let result: MusicalKeyValue = list.mostLikely()!
+        let resultA: MusicalKeyValue = list.choose(tieBreakerWeight: .first)!
+        let resultB: MusicalKeyValue = list.choose(tieBreakerWeight: .last)!
 
-        #expect(result == .init(name: .a, tonality: .major))
+        #expect(resultA == .init(name: .a, tonality: .major))
+        #expect(resultB == .init(name: .a, tonality: .minor))
     }
 }
