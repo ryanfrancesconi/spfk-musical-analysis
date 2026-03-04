@@ -4,52 +4,34 @@
 import PackageDescription
 
 let package = Package(
-    name: "spfk-audio-content-analysis",
+    name: "spfk-musical-analysis",
     defaultLocalization: "en",
     platforms: [.macOS(.v12), .iOS(.v15)],
     products: [
         .library(
-            name: "SPFKAudioContentAnalysis",
-            targets: ["SPFKAudioContentAnalysis", "SPFKAudioContentAnalysisC"]
+            name: "SPFKMusicalAnalysis",
+            targets: ["SPFKMusicalAnalysis"]
         )
     ],
     dependencies: [
         .package(url: "https://github.com/ryanfrancesconi/spfk-base", from: "0.0.1"),
         .package(url: "https://github.com/ryanfrancesconi/spfk-audio-base", from: "0.0.1"),
         .package(url: "https://github.com/ryanfrancesconi/spfk-testing", from: "0.0.1"),
-        .package(url: "https://github.com/ryanfrancesconi/CXXAudioContentAnalysis", from: "0.3.1"),
     ],
     targets: [
         .target(
-            name: "SPFKAudioContentAnalysis",
+            name: "SPFKMusicalAnalysis",
             dependencies: [
                 .product(name: "SPFKBase", package: "spfk-base"),
                 .product(name: "SPFKAudioBase", package: "spfk-audio-base"),
-
-                .targetItem(name: "SPFKAudioContentAnalysisC", condition: nil)
-            ]
-        ),
-        .target(
-            name: "SPFKAudioContentAnalysisC",
-            dependencies: [
-                .product(name: "AudioContentAnalysis", package: "CXXAudioContentAnalysis")
-            ],
-            publicHeadersPath: "include",
-            cSettings: [
-                .headerSearchPath("include_private")
-            ],
-            cxxSettings: [
-                .headerSearchPath("include_private")
             ]
         ),
         .testTarget(
-            name: "SPFKAudioContentAnalysisTests",
+            name: "SPFKMusicalAnalysisTests",
             dependencies: [
-                .targetItem(name: "SPFKAudioContentAnalysis", condition: nil),
-                .targetItem(name: "SPFKAudioContentAnalysisC", condition: nil),
+                .targetItem(name: "SPFKMusicalAnalysis", condition: nil),
                 .product(name: "SPFKTesting", package: "spfk-testing"),
             ]
         ),
-    ],
-    cxxLanguageStandard: .cxx20
+    ]
 )
