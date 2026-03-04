@@ -20,7 +20,7 @@ public actor MusicalKeyAnalysis {
 
     public init(audioFile: AVAudioFile, matchesRequired: Int? = nil) {
         self.audioFile = audioFile
-        results = CountableResult(matchesRequired: 2)
+        results = CountableResult(matchesRequired: matchesRequired ?? 2)
     }
 
     public func process() async throws -> MusicalKeyValue {
@@ -59,10 +59,7 @@ public actor MusicalKeyAnalysis {
             )
 
             if let value = MusicalKeyValue(cObject: key) {
-                // Log.debug(value.description)
-
                 if results.append(value) {
-                    // Log.debug(value, "matchesRequired", results.matchesRequired)
                     processTask?.cancel()
                 }
             }

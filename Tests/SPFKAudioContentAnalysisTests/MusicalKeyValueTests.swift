@@ -6,22 +6,6 @@ import Testing
 
 @Suite("MusicalKeyValue")
 struct MusicalKeyValueTests {
-    @Test func printAll() throws {
-        for i in 0 ... 24 {
-            guard let value = MusicalKeyValue(keyIndex: Int32(i)) else {
-                Log.error(i, "is nil")
-                #expect(i == 24)
-                continue
-            }
-
-            print("i: \(value)")
-        }
-    }
-}
-
-// Claude Tests
-
-extension MusicalKeyValueTests {
     @Test("Major keys have correct tonality", arguments: 0 ..< 12)
     func keyIndexMajorTonality(index: Int) {
         let key = MusicalKeyValue(keyIndex: Int32(index))
@@ -181,5 +165,56 @@ extension MusicalKeyValueTests {
     func relativeKeySwapsTonality(index: Int) throws {
         let key = try #require(MusicalKeyValue(keyIndex: Int32(index)))
         #expect(key.tonality != key.relativeKey.tonality)
+    }
+
+    // MARK: - Major note names map to indices 0-11 in order
+
+    @Test("Major key indices match NoteName raw values", arguments: Array(NoteName.allCases.enumerated()))
+    func majorKeyIndicesMatchNoteNames(offset: Int, note: NoteName) {
+        let key = MusicalKeyValue(name: note, tonality: .major)
+        #expect(key.keyIndex == Int32(offset))
+    }
+
+    // MARK: - Description round-trip
+
+    @Test("Description round-trips through string init", arguments: 0 ..< 24)
+    func descriptionRoundTrip(index: Int) throws {
+        let key = try #require(MusicalKeyValue(keyIndex: Int32(index)))
+        let parsed = MusicalKeyValue(string: key.description)
+        #expect(parsed == key)
+    }
+
+    // MARK: - Unknown tonality
+
+    @Test("Unknown tonality description")
+    func unknownTonalityDescription() {
+        let key = MusicalKeyValue(name: .c, tonality: .unknown)
+        #expect(key.description == "C ")
+    }
+
+    @Test("Unknown tonality relativeKey returns self")
+    func unknownTonalityRelativeKey() {
+        let key = MusicalKeyValue(name: .c, tonality: .unknown)
+        #expect(key.relativeKey == key)
+    }
+
+    // MARK: - Exhaustive relativeKey
+
+    @Test("All 12 major keys have correct relative minor", arguments: NoteName.allCases)
+    func exhaustiveRelativeKeyMajor(note: NoteName) {
+        let major = MusicalKeyValue(name: note, tonality: .major)
+        let relative = major.relativeKey
+        #expect(relative.tonality == .minor)
+        // Verify symmetry
+        #expect(relative.relativeKey == major)
+    }
+
+    @Test("All 12 minor keys have correct relative major", arguments: NoteName.allCases)
+    func exhaustiveRelativeKeyMinor(note: NoteName) {
+        let minor = MusicalKeyValue(name: note, tonality: .minor)
+        let relative = minor.relativeKey
+        #expect(relative.tonality == .major)
+        // Verify symmetry
+        #expect(relative.relativeKey == minor)
     }
 }

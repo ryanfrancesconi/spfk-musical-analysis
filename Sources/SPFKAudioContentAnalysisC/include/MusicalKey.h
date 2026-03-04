@@ -8,7 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 typedef struct {
     int32_t keyIndex;
     NSString *stringValue;
-} MusicalKeyValue;
+} CMusicalKeyResult;
 
 @interface MusicalKey : NSObject
 

@@ -127,7 +127,7 @@ extension MusicalKeyValue {
         case (.fSharp, .minor): .init(name: .a, tonality: .major)
         case (.g, .minor):      .init(name: .aSharp, tonality: .major)
         case (.gSharp, .minor): .init(name: .b, tonality: .major)
-        // --- Fallback ---
+        // --- Fallback for .unknown tonality — no relative key exists ---
         default:
             .init(name: name, tonality: tonality)
         }

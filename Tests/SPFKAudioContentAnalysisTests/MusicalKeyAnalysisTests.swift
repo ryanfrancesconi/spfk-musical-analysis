@@ -7,7 +7,10 @@ import SPFKTesting
 import Testing
 
 struct MusicalKeyAnalysisTests: TestCaseModel {
-    @Test func musicalKeyC() async throws {
+    // MARK: - Local integration tests (require files on disk)
+
+    @Test(.tags(.development))
+    func musicalKeyC() async throws {
         let buffer = try AVAudioPCMBuffer(
             url: URL(fileURLWithPath: "/Users/rf/Downloads/TestResources/guitar-12-08-24.wav"))!
         let rawData = try #require(buffer.floatChannelData)
@@ -18,19 +21,19 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
             sampleRate: Float(buffer.format.sampleRate)
         )
 
-        let value = MusicalKeyValue(cObject: key)
-
-        Log.debug(value)
+        let value = try #require(MusicalKeyValue(cObject: key))
+        #expect(value.tonality == .major || value.tonality == .minor)
     }
 
-    @Test func musicalKeyAnalysis_cMajor() async throws {
+    @Test(.tags(.development))
+    func musicalKeyAnalysis_cMajor() async throws {
         let url = URL(fileURLWithPath: "/Users/rf/Documents/Dev/Spongefork/TestResources/C Major.mp3")
         let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 10)
         let key = try await mka.process()
         #expect(key == .init(name: .c, tonality: .major))
     }
 
-    @Test(arguments: NoteName.allCases)
+    @Test(.tags(.development), arguments: NoteName.allCases)
     func majorKeyAnalysis(note: NoteName) async throws {
         let value = MusicalKeyValue(name: note, tonality: .major)
         let url = URL(fileURLWithPath: "/Users/rf/Documents/Dev/Spongefork/TestResources/\(value.description).mp3")
@@ -46,6 +49,8 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
         #expect(key == value || key == value.relativeKey)
     }
 
+    // MARK: - Portable tests
+
     @Test func choose() async throws {
         let list: CountableResult<MusicalKeyValue> = [
             .init(name: .a, tonality: .major),
@@ -60,5 +65,20 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
 
         #expect(resultA == .init(name: .a, tonality: .major))
         #expect(resultB == .init(name: .a, tonality: .minor))
+    }
+
+    @Test func invalidURLThrows() async throws {
+        #expect(throws: (any Error).self) {
+            try MusicalKeyAnalysis(url: URL(fileURLWithPath: "/nonexistent/file.wav"))
+        }
+    }
+
+    @Test(.tags(.file))
+    func musicalKeyAnalysisWithTestBundle() async throws {
+        let url = TestBundleResources.shared.cowbell_wav
+        let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 1)
+        let key = try await mka.process()
+        // Just verify it returns a valid key (not testing accuracy on a short cowbell sample)
+        #expect(key.tonality == .major || key.tonality == .minor)
     }
 }

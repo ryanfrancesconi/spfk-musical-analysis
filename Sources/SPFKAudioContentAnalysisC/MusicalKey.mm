@@ -20,7 +20,7 @@ using std::endl;
                   sampleRate:(float)sampleRate {
     self = [super init];
 
-    MusicalKeyValue value = parse(samples, numberOfSamples, sampleRate);
+    CMusicalKeyResult value = parse(samples, numberOfSamples, sampleRate);
 
     _stringValue = value.stringValue;
     _keyIndex = value.keyIndex;
@@ -28,10 +28,8 @@ using std::endl;
     return self;
 }
 
-MusicalKeyValue parse(const float *samples, double numberOfSamples,
-                      float sampleRate) {
-    int blockLength = 4096;
-    int hopLength = 2048;
+CMusicalKeyResult parse(const float *samples, double numberOfSamples,
+                        float sampleRate) {
     int keyIndex = -1;
 
     CKey *cKey = new CKey();
@@ -41,7 +39,7 @@ MusicalKeyValue parse(const float *samples, double numberOfSamples,
     keyIndex = cKey->compKey();
 
     if (keyIndex == -1) {
-        return MusicalKeyValue{keyIndex, @""};
+        return CMusicalKeyResult{keyIndex, @""};
     }
 
     std::string stringValue =
@@ -49,7 +47,7 @@ MusicalKeyValue parse(const float *samples, double numberOfSamples,
 
     NSString *nsString = [NSString stringWithUTF8String:stringValue.c_str()];
 
-    return MusicalKeyValue{keyIndex, nsString};
+    return CMusicalKeyResult{keyIndex, nsString};
 }
 
 @end
