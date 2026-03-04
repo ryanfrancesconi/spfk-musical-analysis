@@ -1,10 +1,10 @@
 // Copyright Ryan Francesconi. All Rights Reserved. Revision History at
-// https://github.com/ryanfrancesconi/spfk-audio-content-analysis
+// https://github.com/ryanfrancesconi/spfk-musical-analysis
 
 import AVFoundation
 import Foundation
 import SPFKAudioBase
-import SPFKAudioContentAnalysisC
+import SPFKMusicalAnalysisC
 import SPFKBase
 
 public actor MusicalKeyAnalysis {

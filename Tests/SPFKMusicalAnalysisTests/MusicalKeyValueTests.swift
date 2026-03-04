@@ -2,7 +2,7 @@ import SPFKAudioBase
 import SPFKBase
 import Testing
 
-@testable import SPFKAudioContentAnalysis
+@testable import SPFKMusicalAnalysis
 
 @Suite("MusicalKeyValue")
 struct MusicalKeyValueTests {

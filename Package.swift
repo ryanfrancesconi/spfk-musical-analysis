@@ -4,13 +4,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "spfk-audio-content-analysis",
+    name: "spfk-musical-analysis",
     defaultLocalization: "en",
     platforms: [.macOS(.v12), .iOS(.v15)],
     products: [
         .library(
-            name: "SPFKAudioContentAnalysis",
-            targets: ["SPFKAudioContentAnalysis", "SPFKAudioContentAnalysisC"]
+            name: "SPFKMusicalAnalysis",
+            targets: ["SPFKMusicalAnalysis", "SPFKMusicalAnalysisC"]
         )
     ],
     dependencies: [
@@ -21,16 +21,16 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SPFKAudioContentAnalysis",
+            name: "SPFKMusicalAnalysis",
             dependencies: [
                 .product(name: "SPFKBase", package: "spfk-base"),
                 .product(name: "SPFKAudioBase", package: "spfk-audio-base"),
 
-                .targetItem(name: "SPFKAudioContentAnalysisC", condition: nil)
+                .targetItem(name: "SPFKMusicalAnalysisC", condition: nil)
             ]
         ),
         .target(
-            name: "SPFKAudioContentAnalysisC",
+            name: "SPFKMusicalAnalysisC",
             dependencies: [
                 .product(name: "AudioContentAnalysis", package: "CXXAudioContentAnalysis")
             ],
@@ -43,10 +43,10 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "SPFKAudioContentAnalysisTests",
+            name: "SPFKMusicalAnalysisTests",
             dependencies: [
-                .targetItem(name: "SPFKAudioContentAnalysis", condition: nil),
-                .targetItem(name: "SPFKAudioContentAnalysisC", condition: nil),
+                .targetItem(name: "SPFKMusicalAnalysis", condition: nil),
+                .targetItem(name: "SPFKMusicalAnalysisC", condition: nil),
                 .product(name: "SPFKTesting", package: "spfk-testing"),
             ]
         ),

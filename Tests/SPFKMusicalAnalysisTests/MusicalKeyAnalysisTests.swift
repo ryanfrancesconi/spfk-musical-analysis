@@ -1,7 +1,7 @@
 import AVFoundation
 import SPFKAudioBase
-import SPFKAudioContentAnalysis
-import SPFKAudioContentAnalysisC
+import SPFKMusicalAnalysis
+import SPFKMusicalAnalysisC
 import SPFKBase
 import SPFKTesting
 import Testing
