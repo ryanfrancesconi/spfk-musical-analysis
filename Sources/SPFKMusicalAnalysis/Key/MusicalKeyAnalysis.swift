@@ -4,13 +4,13 @@
 import AVFoundation
 import Foundation
 import SPFKAudioBase
-import SPFKMusicalAnalysisC
 import SPFKBase
 
 public actor MusicalKeyAnalysis {
     private let audioFile: AVAudioFile
     private var results: CountableResult<MusicalKeyValue>
     private let audioDuration: TimeInterval
+    private let detector: MusicalKeyDetector
 
     var processTask: Task<Void, Error>?
 
@@ -21,13 +21,18 @@ public actor MusicalKeyAnalysis {
 
     public init(url: URL, matchesRequired: Int? = nil) throws {
         let audioFile = try AVAudioFile(forReading: url)
-        self.init(audioFile: audioFile, matchesRequired: matchesRequired)
+        try self.init(audioFile: audioFile, matchesRequired: matchesRequired)
     }
 
-    public init(audioFile: AVAudioFile, matchesRequired: Int? = nil) {
+    public init(audioFile: AVAudioFile, matchesRequired: Int? = nil) throws {
         self.audioFile = audioFile
         audioDuration = audioFile.duration
         results = CountableResult(matchesRequired: matchesRequired ?? 2)
+
+        guard let detector = MusicalKeyDetector() else {
+            throw NSError(description: "Failed to initialize FFT processor")
+        }
+        self.detector = detector
     }
 
     public func process() async throws -> MusicalKeyValue {
@@ -59,13 +64,13 @@ public actor MusicalKeyAnalysis {
             break
 
         case let .data(format: format, length: length, samples: samples):
-            let key = MusicalKey(
-                data: samples.pointee,
-                numberOfSamples: Int32(length),
+            let keyIndex = detector.detectKey(
+                samples: samples.pointee,
+                sampleCount: Int(length),
                 sampleRate: Float(format.sampleRate)
             )
 
-            if let value = MusicalKeyValue(cObject: key) {
+            if let value = MusicalKeyValue(keyIndex: Int32(keyIndex)) {
                 if results.append(value) {
                     processTask?.cancel()
                 }

@@ -10,14 +10,13 @@ let package = Package(
     products: [
         .library(
             name: "SPFKMusicalAnalysis",
-            targets: ["SPFKMusicalAnalysis", "SPFKMusicalAnalysisC"]
+            targets: ["SPFKMusicalAnalysis"]
         )
     ],
     dependencies: [
         .package(url: "https://github.com/ryanfrancesconi/spfk-base", from: "0.0.1"),
         .package(url: "https://github.com/ryanfrancesconi/spfk-audio-base", from: "0.0.1"),
         .package(url: "https://github.com/ryanfrancesconi/spfk-testing", from: "0.0.1"),
-        .package(url: "https://github.com/ryanfrancesconi/CXXAudioContentAnalysis", from: "0.3.1"),
     ],
     targets: [
         .target(
@@ -25,31 +24,14 @@ let package = Package(
             dependencies: [
                 .product(name: "SPFKBase", package: "spfk-base"),
                 .product(name: "SPFKAudioBase", package: "spfk-audio-base"),
-
-                .targetItem(name: "SPFKMusicalAnalysisC", condition: nil)
-            ]
-        ),
-        .target(
-            name: "SPFKMusicalAnalysisC",
-            dependencies: [
-                .product(name: "AudioContentAnalysis", package: "CXXAudioContentAnalysis")
-            ],
-            publicHeadersPath: "include",
-            cSettings: [
-                .headerSearchPath("include_private")
-            ],
-            cxxSettings: [
-                .headerSearchPath("include_private")
             ]
         ),
         .testTarget(
             name: "SPFKMusicalAnalysisTests",
             dependencies: [
                 .targetItem(name: "SPFKMusicalAnalysis", condition: nil),
-                .targetItem(name: "SPFKMusicalAnalysisC", condition: nil),
                 .product(name: "SPFKTesting", package: "spfk-testing"),
             ]
         ),
-    ],
-    cxxLanguageStandard: .cxx20
+    ]
 )

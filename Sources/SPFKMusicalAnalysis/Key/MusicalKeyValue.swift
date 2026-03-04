@@ -3,7 +3,6 @@
 
 import Foundation
 import SPFKAudioBase
-import SPFKMusicalAnalysisC
 
 public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConvertible {
     public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -28,7 +27,7 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
     }
 
     /**
-     `keyIndex` is the numeric value in CXXAudioContentAnalysis `CKey::Keys_t`
+     `keyIndex` is the numeric key index used by the key detection pipeline.
 
      0: C Major
      1: C# Major/Db Major
@@ -77,11 +76,6 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
     public init(name: NoteName, tonality: MusicalTonality) {
         self.name = name
         self.tonality = tonality
-    }
-
-    public init?(cObject: MusicalKey) {
-        guard let value = MusicalKeyValue(keyIndex: cObject.keyIndex) else { return nil }
-        self = value
     }
 
     public init?(string: String) {
