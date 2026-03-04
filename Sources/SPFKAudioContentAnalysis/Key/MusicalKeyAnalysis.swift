@@ -10,8 +10,14 @@ import SPFKBase
 public actor MusicalKeyAnalysis {
     private let audioFile: AVAudioFile
     private var results: CountableResult<MusicalKeyValue>
+    private let audioDuration: TimeInterval
 
     var processTask: Task<Void, Error>?
+
+    public private(set) var maxAnalysisBufferDuration: TimeInterval = 60
+    public func update(maxAnalysisBufferDuration: TimeInterval) {
+        self.maxAnalysisBufferDuration = maxAnalysisBufferDuration
+    }
 
     public init(url: URL, matchesRequired: Int? = nil) throws {
         let audioFile = try AVAudioFile(forReading: url)
@@ -20,13 +26,14 @@ public actor MusicalKeyAnalysis {
 
     public init(audioFile: AVAudioFile, matchesRequired: Int? = nil) {
         self.audioFile = audioFile
+        audioDuration = audioFile.duration
         results = CountableResult(matchesRequired: matchesRequired ?? 2)
     }
 
     public func process() async throws -> MusicalKeyValue {
         processTask = Task<Void, Error> {
             let audioAnalysis = AudioFileScanner(
-                bufferDuration: audioFile.duration / 6,
+                bufferDuration: min(audioDuration / 6, maxAnalysisBufferDuration),
                 sendPeriodicProgressEvery: 4,
                 eventHandler: analyze(_:)
             )
