@@ -74,8 +74,10 @@ struct MusicalKeyAnalysisTests: TestCaseModel {
     func musicalKeyAnalysisWithTestBundle() async throws {
         let url = TestBundleResources.shared.cowbell_wav
         let mka = try MusicalKeyAnalysis(url: url, matchesRequired: 1)
-        let key = try await mka.process()
-        // Just verify it returns a valid key (not testing accuracy on a short cowbell sample)
-        #expect(key.tonality == .major || key.tonality == .minor)
+        // A short percussive cowbell sample has no clear tonal content,
+        // so it should be rejected by the confidence threshold.
+        await #expect(throws: (any Error).self) {
+            _ = try await mka.process()
+        }
     }
 }

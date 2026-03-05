@@ -4,18 +4,27 @@
 import Foundation
 import SPFKAudioBase
 
+/// A detected musical key represented as a note name and tonality pair.
+///
+/// Supports all 24 major and minor keys, round-trips through a numeric key
+/// index (0–23), and can be initialized from a display string such as
+/// `"C# Minor"`. Provides ``relativeKey`` lookup (e.g. C Major ↔ A Minor).
 public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConvertible {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.name == rhs.name && lhs.tonality == rhs.tonality
     }
 
+    /// The root note of the key (e.g. `.c`, `.fSharp`).
     public var name: NoteName
+
+    /// Whether the key is major, minor, or unknown.
     public var tonality: MusicalTonality
 
     public var description: String {
         "\(name) \(tonality)"
     }
 
+    /// The numeric key index used by the detection pipeline (0–23).
     public var keyIndex: Int32 {
         var value = name.rawValue
 
@@ -73,11 +82,15 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
         name = keyName
     }
 
+    /// Creates a key value from explicit note name and tonality.
     public init(name: NoteName, tonality: MusicalTonality) {
         self.name = name
         self.tonality = tonality
     }
 
+    /// Creates a key value by parsing a display string such as `"C Major"`
+    /// or `"F# Minor"`. Returns `nil` if the string is not in the expected
+    /// `"<NoteName> <Tonality>"` format.
     public init?(string: String) {
         let parts = string.components(separatedBy: " ").map(\.trimmed)
 
@@ -93,6 +106,8 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
 // swiftformat:disable consecutiveSpaces
 
 extension MusicalKeyValue {
+    /// The relative major or minor key. Major keys return their relative
+    /// minor and vice versa (e.g. C Major → A Minor, A Minor → C Major).
     public var relativeKey: MusicalKeyValue {
         switch (name, tonality) {
         // --- Major to Minor

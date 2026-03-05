@@ -10,7 +10,10 @@ import Accelerate
 /// 2. FFT each frame to produce magnitude spectra
 /// 3. Extract 12-bin pitch chroma from each spectrum
 /// 4. Average chroma across all frames
-/// 5. Classify averaged chroma against Krumhansl key profiles
+/// 5. Classify averaged chroma against Temperley key profiles
+///
+/// Returns both a key index and a Pearson correlation value indicating
+/// how strongly the chroma matches the best key profile.
 struct MusicalKeyDetector: Sendable {
     /// Number of samples per analysis frame (default 4096).
     let blockLength: Int
@@ -34,16 +37,23 @@ struct MusicalKeyDetector: Sendable {
         fft = processor
     }
 
+    /// Result of key detection containing key index and confidence.
+    struct Result: Sendable {
+        /// Key index (0–11 major, 12–23 minor, 24 no key), or -1 if insufficient data.
+        let keyIndex: Int
+        /// Pearson correlation strength of the best key match (higher = more confident).
+        let correlation: Float
+    }
+
     /// Detects the musical key from raw audio samples.
     ///
     /// - Parameters:
     ///   - samples: Mono audio samples as a float pointer.
     ///   - sampleCount: Number of samples.
     ///   - sampleRate: The audio sample rate in Hz.
-    /// - Returns: Key index (0–11 major, 12–23 minor, 24 no key), or -1 if
-    ///   insufficient data.
-    func detectKey(samples: UnsafePointer<Float>, sampleCount: Int, sampleRate: Float) -> Int {
-        guard sampleCount >= blockLength else { return -1 }
+    /// - Returns: A ``Result`` containing the key index and correlation strength.
+    func detectKey(samples: UnsafePointer<Float>, sampleCount: Int, sampleRate: Float) -> Result {
+        guard sampleCount >= blockLength else { return Result(keyIndex: -1, correlation: 0) }
 
         let chromaExtractor = ChromaExtractor(
             fftLength: fft.fftLength,
@@ -51,7 +61,7 @@ struct MusicalKeyDetector: Sendable {
         )
 
         let numBlocks = (sampleCount - blockLength) / hopLength + 1
-        guard numBlocks > 0 else { return -1 }
+        guard numBlocks > 0 else { return Result(keyIndex: -1, correlation: 0) }
 
         // Accumulate chroma vectors across all frames
         var chromaSum = [Float](repeating: 0, count: 12)
@@ -76,6 +86,7 @@ struct MusicalKeyDetector: Sendable {
 
         // Classify
         let classifier = KeyClassifier()
-        return classifier.classify(chromaSum)
+        let result = classifier.classify(chromaSum)
+        return Result(keyIndex: result.keyIndex, correlation: result.correlation)
     }
 }

@@ -31,13 +31,23 @@ struct KeyClassifier: Sendable {
 
     init() {}
 
-    /// Classifies a 12-element chroma vector into a key index (0–24).
+    /// Result of a key classification, containing both the key index and the
+    /// Pearson correlation strength of the best match.
+    struct Result: Sendable {
+        /// Key index: 0–11 = C Major..B Major, 12–23 = C Minor..B Minor, 24 = no key.
+        let keyIndex: Int
+        /// Pearson correlation of the best-matching key profile (range roughly -1...1).
+        let correlation: Float
+    }
+
+    /// Classifies a 12-element chroma vector into a key index with correlation.
     ///
     /// - Parameter chroma: A 12-element array of pitch class energies
     ///   (C, C#, D, ..., B). Does not need to be pre-normalized.
-    /// - Returns: Key index where 0–11 = C Major..B Major,
-    ///   12–23 = C Minor..B Minor, 24 = no key.
-    func classify(_ chroma: [Float]) -> Int {
+    /// - Returns: A ``Result`` containing the best key index (0–11 major,
+    ///   12–23 minor, or 24 for no key) and the Pearson correlation strength
+    ///   of the match. Correlations below 0.2 are mapped to key index 24.
+    func classify(_ chroma: [Float]) -> Result {
         precondition(chroma.count == 12)
 
         var bestIndex = 24
@@ -70,10 +80,10 @@ struct KeyClassifier: Sendable {
         // "No key" check — if best correlation is very low, the chroma
         // is likely noise or has no tonal content
         if bestCorrelation < 0.2 {
-            return 24
+            return Result(keyIndex: 24, correlation: bestCorrelation)
         }
 
-        return bestIndex
+        return Result(keyIndex: bestIndex, correlation: bestCorrelation)
     }
 
     /// Computes Pearson correlation coefficient between two equal-length arrays.

@@ -22,35 +22,35 @@ Originally based on [Alexander Lerch's](https://github.com/alexanderlerch) C++ [
 Audio File
     │
     ▼
-┌──────────────────────┐
-│   MusicalKeyAnalysis  │  Public API — accepts AVAudioFile or URL
-│   (actor)             │  Scans audio in chunks, collects key votes
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│   MusicalKeyDetector  │  Orchestrator — frames audio into overlapping blocks
-│   (struct)            │  Averages chroma across all frames, then classifies
-└──────────┬───────────┘
-           │
-     ┌─────┴─────┐
-     ▼           ▼
-┌─────────┐ ┌────────────────┐
-│   FFT    │ │ ChromaExtractor │  Hann-windowed FFT via vDSP
-│Processor │ │   (struct)      │  12-bin pitch chroma filter bank
-│ (class)  │ └───────┬────────┘
-└─────────┘         │
-                    ▼
-           ┌───────────────┐
-           │ KeyClassifier  │  Pearson correlation against
-           │   (struct)     │  24 rotated Temperley key profiles
-           └───────────────┘
-                    │
-                    ▼
-           ┌───────────────┐
-           │MusicalKeyValue │  Result: note name + tonality
-           │   (struct)     │  e.g., "C Major", "F# Minor"
-           └───────────────┘
+┌────────────────────────┐
+│   MusicalKeyAnalysis   │  Public API — accepts AVAudioFile or URL
+│   (actor)              │  Scans audio in chunks, collects key votes
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│   MusicalKeyDetector   │  Orchestrator — frames audio into overlapping blocks
+│   (struct)             │  Averages chroma across all frames, then classifies
+└───────────┬────────────┘
+            │
+      ┌─────┴─────┐
+      ▼           ▼
+┌────────────┐ ┌──────────────────┐
+│   FFT      │ │ ChromaExtractor  │  Hann-windowed FFT via vDSP
+│  Processor │ │   (struct)       │  12-bin pitch chroma filter bank
+│  (class)   │ └────────┬─────────┘
+└────────────┘          │
+                        ▼
+              ┌──────────────────┐
+              │  KeyClassifier   │  Pearson correlation against
+              │  (struct)        │  24 rotated Temperley key profiles
+              └──────────────────┘
+                        │
+                        ▼
+              ┌──────────────────┐
+              │ MusicalKeyValue  │  Result: note name + tonality
+              │  (struct)        │  e.g., "C Major", "F# Minor"
+              └──────────────────┘
 ```
 
 ## Features
@@ -63,9 +63,9 @@ The DSP pipeline processes audio through four stages:
 
 2. **Chroma Extraction** (`ChromaExtractor`) -- Maps FFT magnitude bins to 12 pitch classes (C through B) using a filter bank spanning 4 octaves from C4. Each pitch class covers a quarter-tone-wide band, and the resulting chroma vector is L1-normalized.
 
-3. **Key Classification** (`KeyClassifier`) -- Computes Pearson correlation between the averaged chroma vector and all 24 cyclically-rotated Temperley key profiles (12 major + 12 minor). Returns the key with the highest correlation, or "no key" if the best correlation falls below 0.2.
+3. **Key Classification** (`KeyClassifier`) -- Computes Pearson correlation between the averaged chroma vector and all 24 cyclically-rotated Temperley key profiles (12 major + 12 minor). Returns both the best key index and the correlation strength. Keys with correlations below 0.2 are classified as "no key."
 
-4. **Temporal Averaging** (`MusicalKeyDetector`) -- Blocks audio into overlapping frames (50% hop), extracts chroma from each frame, and averages across all frames before classification.
+4. **Temporal Averaging** (`MusicalKeyDetector`) -- Blocks audio into overlapping frames (50% hop), extracts chroma from each frame, and averages across all frames before classification. Propagates the correlation strength alongside the key index for downstream confidence checking.
 
 ### Analysis
 
@@ -74,6 +74,8 @@ The DSP pipeline processes audio through four stages:
 - Accepts `AVAudioFile` or file `URL`
 - Scans audio in configurable chunk sizes (up to 60 seconds per chunk)
 - Uses a voting system (`CountableResult`) that collects key detections from multiple chunks
+- Tracks the average Pearson correlation for each candidate key across chunks
+- Rejects results whose average correlation falls below `minimumConfidence` (default 0.5), preventing false positives on noise, percussion, or other non-tonal audio
 - Supports early termination when enough matching votes are collected (`matchesRequired`)
 - Fully concurrent -- implemented as a Swift `actor`
 
@@ -112,6 +114,22 @@ let analysis = try MusicalKeyAnalysis(audioFile: audioFile, matchesRequired: 5)
 await analysis.update(maxAnalysisBufferDuration: 30)
 
 let key = try await analysis.process()
+```
+
+### Confidence Threshold
+
+By default, `process()` throws if the winning key's average Pearson correlation
+is below `0.5`. This rejects noise, percussion, and other non-tonal audio that
+would otherwise produce a spurious key. You can adjust this:
+
+```swift
+let analysis = try MusicalKeyAnalysis(url: url)
+
+// Require higher confidence (stricter)
+await analysis.update(minimumConfidence: 0.7)
+
+// Or disable confidence checking entirely
+await analysis.update(minimumConfidence: 0)
 ```
 
 ## Dependencies
