@@ -115,7 +115,15 @@ public actor MusicalKeyAnalysis {
             try await audioAnalysis.process(audioFile: audioFile)
         }
 
-        _ = await processTask?.result
+        // Bridge cancellation from the calling structured context into the
+        // unstructured processTask. Without this, cancelling the parent task
+        // (e.g. via a task group) won't reach AudioFileScanner's loop.
+        let task = processTask
+        _ = await withTaskCancellationHandler {
+            await task?.result
+        } onCancel: {
+            task?.cancel()
+        }
 
         guard let value = results.choose() else {
             throw NSError(description: "Failed to detect key")
