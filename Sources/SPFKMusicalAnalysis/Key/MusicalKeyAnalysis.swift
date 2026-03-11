@@ -130,11 +130,10 @@ public actor MusicalKeyAnalysis {
         }
 
         // Check average correlation confidence for the winning key
-        let avgCorrelation: Float
-        if let sum = correlationSums[value], let count = correlationCounts[value], count > 0 {
-            avgCorrelation = sum / Float(count)
+        let avgCorrelation: Float = if let sum = correlationSums[value], let count = correlationCounts[value], count > 0 {
+            sum / Float(count)
         } else {
-            avgCorrelation = 0
+            0
         }
 
         guard avgCorrelation >= minimumConfidence else {
