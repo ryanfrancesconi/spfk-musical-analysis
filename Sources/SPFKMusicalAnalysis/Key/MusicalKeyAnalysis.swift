@@ -93,6 +93,10 @@ public actor MusicalKeyAnalysis {
             task?.cancel()
         }
 
+        // Read from the enclosing task, not `processTask` — that one is also cancelled by
+        // `analyze(_:)` for early termination, which is not a user cancel.
+        try Task.checkCancellation()
+
         guard let value = results.choose() else {
             throw NSError(description: "Failed to detect key")
         }
