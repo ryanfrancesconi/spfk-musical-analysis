@@ -3,27 +3,22 @@
 import Foundation
 import SPFKAudioBase
 
-/// A detected musical key represented as a note name and tonality pair.
-///
-/// Supports all 24 major and minor keys, round-trips through a numeric key
-/// index (0–23), and can be initialized from a display string such as
-/// `"C# Minor"`. Provides ``relativeKey`` lookup (e.g. C Major ↔ A Minor).
+/// A detected musical key as a note name and tonality pair, covering all 24 major and minor
+/// keys. Round-trips through the pipeline's numeric key index and through a display string such
+/// as `"C# Minor"`.
 public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConvertible {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.name == rhs.name && lhs.tonality == rhs.tonality
     }
 
-    /// The root note of the key (e.g. `.c`, `.fSharp`).
     public var name: NoteName
-
-    /// Whether the key is major, minor, or unknown.
     public var tonality: MusicalTonality
 
     public var description: String {
         "\(name) \(tonality)"
     }
 
-    /// The numeric key index used by the detection pipeline (0–23).
+    /// The numeric key index used by the detection pipeline, 0–23.
     public var keyIndex: Int32 {
         var value = name.rawValue
 
@@ -34,39 +29,9 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
         return value
     }
 
-    /**
-     `keyIndex` is the numeric key index used by the key detection pipeline.
-
-     0: C Major
-     1: C# Major/Db Major
-     2: D Major
-     3: D# Major/Eb Major
-     4: E Major
-     5: F Major
-     6: F# Major/Gb Major
-     7: G Major
-     8: G# Major/Ab Major
-     9: A Major
-     10: A# Major/Bb Major
-     11: B Major
-     ---
-     12: C Minor
-     13: C# Minor/Db Minor
-     14: D Minor
-     15: D# Minor/Eb Minor
-     16: E Minor
-     17: F Minor
-     18: F# Minor/Gb Minor
-     19: G Minor
-     20: G# Minor/Ab Minor
-     21: A Minor
-     22: A# Minor/Bb Minor
-     23: B Minor
-     ---
-     24: No Chord
-
-     MusicalKeyValue is reorganizing this information into a note name and a tonality.
-      */
+    /// Splits the pipeline's key index into a note name and a tonality: 0–11 is C Major through B
+    /// Major, 12–23 C Minor through B Minor. The pipeline's 24 ("no chord") has no value here and
+    /// returns `nil`, as does anything out of range.
     public init?(keyIndex: Int32) {
         guard keyIndex >= 0, keyIndex <= 23 else {
             return nil
@@ -81,15 +46,13 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
         name = keyName
     }
 
-    /// Creates a key value from explicit note name and tonality.
     public init(name: NoteName, tonality: MusicalTonality) {
         self.name = name
         self.tonality = tonality
     }
 
-    /// Creates a key value by parsing a display string such as `"C Major"`
-    /// or `"F# Minor"`. Returns `nil` if the string is not in the expected
-    /// `"<NoteName> <Tonality>"` format.
+    /// Parses a display string such as `"C Major"`, returning `nil` for anything not in
+    /// `"<NoteName> <Tonality>"` form.
     public init?(string: String) {
         let parts = string.components(separatedBy: " ").map(\.trimmed)
 
@@ -105,8 +68,7 @@ public struct MusicalKeyValue: Sendable, Hashable, Equatable, CustomStringConver
 // swiftformat:disable consecutiveSpaces
 
 extension MusicalKeyValue {
-    /// The relative major or minor key. Major keys return their relative
-    /// minor and vice versa (e.g. C Major → A Minor, A Minor → C Major).
+    /// The relative major or minor key — C Major → A Minor, A Minor → C Major.
     public var relativeKey: MusicalKeyValue {
         switch (name, tonality) {
         // --- Major to Minor
@@ -135,7 +97,7 @@ extension MusicalKeyValue {
         case (.fSharp, .minor): .init(name: .a, tonality: .major)
         case (.g, .minor):      .init(name: .aSharp, tonality: .major)
         case (.gSharp, .minor): .init(name: .b, tonality: .major)
-        // --- Fallback for .unknown tonality — no relative key exists ---
+        // .unknown tonality has no relative key.
         default:
             .init(name: name, tonality: tonality)
         }

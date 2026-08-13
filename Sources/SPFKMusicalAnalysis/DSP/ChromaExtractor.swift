@@ -13,12 +13,10 @@ struct ChromaExtractor: Sendable {
     private let filterBank: [Float]
     private let magnitudeLength: Int
 
-    /// Creates a chroma extractor for the given FFT and sample rate parameters.
-    ///
     /// - Parameters:
-    ///   - fftLength: The FFT size (must be power of two).
+    ///   - fftLength: The FFT size, a power of two.
     ///   - sampleRate: The audio sample rate in Hz.
-    ///   - numOctaves: Number of octaves to aggregate (default 4).
+    ///   - numOctaves: Number of octaves to aggregate.
     init(fftLength: Int, sampleRate: Float, numOctaves: Int = 4) {
         let magLen = fftLength / 2 + 1
         magnitudeLength = magLen
@@ -26,7 +24,6 @@ struct ChromaExtractor: Sendable {
         // Quarter-tone ratio: 2^(1/24) — defines half-semitone-wide bands
         let quarterToneRatio: Float = pow(2.0, 1.0 / 24.0)
 
-        // Build 12 × magLen filter bank
         var bank = [Float](repeating: 0, count: 12 * magLen)
 
         // Starting pitch: C4 = MIDI 60
@@ -48,7 +45,6 @@ struct ChromaExtractor: Sendable {
                 let fLow = octaveMid / quarterToneRatio
                 let fHigh = octaveMid * quarterToneRatio
 
-                // Convert frequencies to FFT bin indices
                 let binLow = max(0, Int(round(fLow * Float(fftLength) / sampleRate)))
                 let binHigh = min(magLen - 1, Int(round(fHigh * Float(fftLength) / sampleRate)))
 
@@ -61,7 +57,6 @@ struct ChromaExtractor: Sendable {
                     }
                 }
 
-                // Advance to next octave
                 octaveMid *= 2.0
             }
 
@@ -72,18 +67,15 @@ struct ChromaExtractor: Sendable {
         filterBank = bank
     }
 
-    /// Extracts a 12-element chroma vector from a magnitude spectrum.
-    ///
     /// - Parameter magnitudeSpectrum: The magnitude spectrum from `FFTProcessor`.
     /// - Returns: A 12-element L1-normalized pitch chroma vector.
     func chroma(from magnitudeSpectrum: [Float]) -> [Float] {
         precondition(magnitudeSpectrum.count == magnitudeLength)
 
-        // Square the magnitudes (power spectrum)
+        // Power spectrum.
         var powerSpectrum = [Float](repeating: 0, count: magnitudeLength)
         vDSP_vsq(magnitudeSpectrum, 1, &powerSpectrum, 1, vDSP_Length(magnitudeLength))
 
-        // Compute chroma: for each pitch class, dot product with filter bank row
         var chroma = [Float](repeating: 0, count: 12)
 
         for pitchClass in 0 ..< 12 {
@@ -97,7 +89,6 @@ struct ChromaExtractor: Sendable {
             }
         }
 
-        // L1-normalize
         return KeyClassifier.l1Normalize(chroma)
     }
 }
