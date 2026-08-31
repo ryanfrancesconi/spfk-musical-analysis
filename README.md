@@ -89,49 +89,11 @@ The DSP pipeline processes audio through four stages:
 - Relative key lookup (e.g., C Major ↔ A Minor)
 - Initializable from key index (0--23), string ("C# Minor"), or components
 
-## Usage
+## Confidence threshold
 
-### Detect the Key of an Audio File
-
-```swift
-import SPFKMusicalAnalysis
-
-let analysis = try MusicalKeyAnalysis(url: audioFileURL, matchesRequired: 3)
-let key = try await analysis.process()
-
-print(key) // e.g., "C Major"
-print(key.name) // .c
-print(key.tonality) // .major
-print(key.relativeKey) // "A Minor"
-```
-
-### Configure Analysis Parameters
-
-```swift
-let audioFile = try AVAudioFile(forReading: url)
-let analysis = try MusicalKeyAnalysis(audioFile: audioFile, matchesRequired: 5)
-
-// Limit the maximum buffer size for each analysis chunk
-await analysis.update(maxAnalysisBufferDuration: 30)
-
-let key = try await analysis.process()
-```
-
-### Confidence Threshold
-
-By default, `process()` throws if the winning key's average Pearson correlation
-is below `0.5`. This rejects noise, percussion, and other non-tonal audio that
-would otherwise produce a spurious key. You can adjust this:
-
-```swift
-let analysis = try MusicalKeyAnalysis(url: url)
-
-// Require higher confidence (stricter)
-await analysis.update(minimumConfidence: 0.7)
-
-// Or disable confidence checking entirely
-await analysis.update(minimumConfidence: 0)
-```
+`process()` throws if the winning key's average Pearson correlation is below `0.5`. That rejects
+noise, percussion and other non-tonal audio which would otherwise produce a spurious key. Callers
+that want a different bar set `minimumConfidence` on the analysis options.
 
 ## Dependencies
 
